@@ -1,0 +1,119 @@
+---
+title: 'Likelihood-based inference for generalized linear mixed models: Inference with the R package glmm'
+subtitle: 'Apresentação do artigo para disciplina de Modelos de Regressão Lineares Generalizados'
+section-titles: false
+slide-level: 2
+execute: 
+  eval: false
+  echo: true
+  cache: true
+knitr: 
+  opts_chunk: 
+    tidy: 'styler'
+format:
+    beamer:
+        aspectratio: 169
+        theme: Madrid
+        navigation: horizontal
+        section-titles: true
+        include-in-header:
+            text: |
+                \AtBeginDocument{\author[Ananda e Isabelle]{Ananda Marquina \\ Isabelle Sannier }}
+                \usepackage{lmodern}
+                \usepackage[table]{xcolor}
+                \setbeamertemplate{section page}{
+                  \centering
+                  \begin{beamercolorbox}[sep=12pt,center,rounded=true,shadow=true]{section title}
+                    \usebeamerfont{section title}\insertsectionhead\par
+                  \end{beamercolorbox}
+                }
+---
+
+## Sumário
+
+\tableofcontents
+
+# INTRODUÇÃO
+
+
+## Introdução 
+
+Aqui é a introdução.
+
+# MODELOS LINEARES MISTOS GENERALIZADOS
+
+
+## Descrição do modelo
+
+Aqui é a explicação do modelo misto.
+
+## O exemplo da salamandra
+
+Aqui é a explicação exemplo.
+
+
+## O conjunto de dados da salamandra
+
+Aqui é a explicação do dataset.
+
+## O modelo da salamandra
+
+Aqui é a explicação do modelo.
+
+
+## A função de verossimilhança
+
+Aqui...
+
+# APROXIMAÇÃO DA VEROSSIMILHANÇA POR MONTE CARLO
+
+## Cálculo do MCLA
+
+Aqui...
+
+## Implementação do MCLA no glmm
+
+Aqui...
+
+
+## Propriedades assintóticas do MCLA
+
+Aqui...
+
+# UTILIZANDO O PACOTE GLMM DO R
+
+## Formatação dos dados
+
+Aqui...
+
+
+## Utilizando a função de ajuste do modelo
+
+Aqui...
+
+## Lendo o resumo da saída
+
+Aqui...
+
+
+## Estimando a matriz de variância-covariância
+
+Aqui...
+
+
+## Cálculo de erros padrão e erros padrão de Monte Carlo
+
+Aqui...
+
+## Funções adicionais
+
+Aqui...
+
+# DESEMPENHO
+
+# NOTAS SOBRE A PROGRAMAÇÃO DOS MÉTODOS DE MONTE CARLO
+
+# DISCUSSÃO
+
+
+
