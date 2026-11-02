@@ -1,33 +1,172 @@
 ---
-title: 'Likelihood-based inference for generalized linear mixed models: Inference with the R package glmm'
-subtitle: 'Apresentação do artigo para disciplina de Modelos de Regressão Lineares Generalizados'
+title: ""
+subtitle: ""
+author: ""
+date: ""
 section-titles: false
-slide-level: 2
-execute: 
-  eval: false
-  echo: true
-  cache: true
-knitr: 
-  opts_chunk: 
-    tidy: 'styler'
 format:
-    beamer:
-        aspectratio: 169
-        theme: Madrid
-        navigation: horizontal
-        section-titles: true
-        include-in-header:
-            text: |
-                \AtBeginDocument{\author[Ananda e Isabelle]{Ananda Marquina \\ Isabelle Sannier }}
-                \usepackage{lmodern}
-                \usepackage[table]{xcolor}
-                \setbeamertemplate{section page}{
-                  \centering
-                  \begin{beamercolorbox}[sep=12pt,center,rounded=true,shadow=true]{section title}
-                    \usebeamerfont{section title}\insertsectionhead\par
-                  \end{beamercolorbox}
-                }
+  beamer:
+    pdf-engine: xelatex
+    aspectratio: 169
+    slide-number: true
+    keep-tex: true
+
+header-includes:
+  - |
+    \usepackage{fontspec}
+    \usepackage{amsmath,amssymb,mathtools}
+    \usepackage{booktabs}
+    \usepackage{tikz}
+    \usepackage{tcolorbox}
+    \usetikzlibrary{arrows.meta,positioning,shapes,fit}
+    
+    % ------------------------------------------------
+    % PALETA DE CORES APORCELANADA E SOFISTICADA
+    % ------------------------------------------------
+    \definecolor{darkgreen}{HTML}{143820}   % Verde floresta profundo e elegante
+    \definecolor{lightgreen}{HTML}{317A43}  % Verde intermediário vibrante
+    \definecolor{accentgreen}{HTML}{E1EFE3} % Verde menta ultra-claro para destaque (greenbox)
+    \definecolor{boxgray}{HTML}{EBEFEF}     % Cinza claro neutro com toque técnico (graybox)
+    \definecolor{bordergreen}{HTML}{8EBA96} % Borda verde suave
+    \definecolor{bordergray}{HTML}{BAC7C7}  % Borda cinza suave
+    \definecolor{textgray}{HTML}{1A2421}    % Texto escuro de altíssimo contraste
+
+    % ------------------------------------------------
+    % FONT
+    % ------------------------------------------------
+    \IfFontExistsTF{Segoe UI}{
+      \setsansfont{Segoe UI}
+    }{
+      \setsansfont{Arial}
+    }
+
+    % ------------------------------------------------
+    % GENERAL BEAMER STYLE
+    % ------------------------------------------------
+    \usetheme{default}
+
+    \setbeamertemplate{navigation symbols}{}
+    \setbeamertemplate{footline}{
+      \hfill
+      \usebeamerfont{page number in head/foot}
+      \usebeamercolor[fg]{page number in head/foot}
+      \insertframenumber{} / \inserttotalframenumber
+      \hspace{0.35cm}
+      \vspace{0.15cm}
+    }
+
+    \setbeamercolor{normal text}{fg=textgray}
+    \setbeamercolor{frametitle}{fg=darkgreen}
+    \setbeamercolor{structure}{fg=darkgreen}
+
+    \setbeamerfont{frametitle}{size=\large,series=\bfseries}
+    \setbeamerfont{framesubtitle}{size=\small}
+
+    % ------------------------------------------------
+    % FRAME TITLE CUSTOM DESIGN
+    % ------------------------------------------------
+    \setbeamertemplate{frametitle}{
+      \vspace{0.15cm}
+      \insertframetitle
+      \par
+      \vspace{0.05cm}
+      {\color{lightgreen}\rule{\textwidth}{1.2pt}}
+      \vspace{0.08cm}
+    }
+
+    % ------------------------------------------------
+    % DEFINIÇÃO DAS CAIXAS (greenbox e graybox)
+    % ------------------------------------------------
+    \newenvironment{greenbox}{
+      \begin{tcolorbox}[
+        colback=accentgreen,
+        colframe=bordergreen,
+        boxrule=0.8pt,
+        arc=3pt,
+        left=6pt,right=6pt,top=6pt,bottom=6pt,
+        width=\textwidth
+      ]
+    }{
+      \end{tcolorbox}
+    }
+
+    \newenvironment{graybox}{
+      \begin{tcolorbox}[
+        colback=boxgray,
+        colframe=bordergray,
+        boxrule=0.8pt,
+        arc=3pt,
+        left=6pt,right=6pt,top=6pt,bottom=6pt,
+        width=\textwidth
+      ]
+    }{
+      \end{tcolorbox}
+    }
+
+    % ------------------------------------------------
+    % ITEMIZE
+    % ------------------------------------------------
+    \setbeamertemplate{itemize item}{
+      \color{lightgreen}\small$\bullet$
+    }
+
+    \setbeamertemplate{itemize subitem}{
+      \color{lightgreen}\scriptsize$\bullet$
+    }
+
+    \setlength{\leftmargini}{0.5cm}
+    \setlength{\leftmarginii}{0.4cm}
+
+    % ------------------------------------------------
+    % MATH
+    % ------------------------------------------------
+    \setlength{\abovedisplayskip}{6pt}
+    \setlength{\belowdisplayskip}{6pt}
+
+    % ------------------------------------------------
+    % TITLE PAGE
+    % ------------------------------------------------
+    \setbeamercolor{title}{fg=darkgreen}
+    \setbeamercolor{subtitle}{fg=lightgreen}
+    \setbeamercolor{author}{fg=textgray}
+
+    \setbeamerfont{title}{size=\LARGE,series=\bfseries}
+    \setbeamerfont{subtitle}{size=\large}
+    \setbeamerfont{author}{size=\normalsize}
+
+execute:
+  echo: false
 ---
+
+##
+
+  \begin{tikzpicture}[remember picture, overlay]
+    \node[anchor=south, inner sep=0pt] at (current page.south) {
+      \includegraphics[width=\paperwidth]{montanhas_1.png}
+    };
+  \end{tikzpicture}
+
+  \vspace{-0.2cm}
+\begin{center}
+  {\huge \color{darkgreen}\textbf{Likelihood-based inference for generalized}}\\
+  \vspace{0.1cm}
+  {\huge \color{darkgreen}\textbf{ linear mixed models}}\\
+  \vspace{0.1cm}
+  {\Large \color{lightgreen}Inference with the R package \texttt{glmm}}\\
+  {\large \color{lightgreen}(Knudson et al., 2020)}
+\end{center}
+  \begin{tikzpicture}[remember picture, overlay]
+    \node[anchor=north west, inner sep=0pt] at (-0.3, 3.3) {
+      \includegraphics[width=1.5cm]{salamandra.png}
+    };
+  \end{tikzpicture}
+
+  \vspace{1cm}
+
+  \begin{center}
+    {\large \color{textgray}\textbf{Ananda Rivas e Isabelle Sannier}}
+  \end{center}
+
 
 ## Sumário
 
@@ -67,53 +206,331 @@ Aqui...
 
 # APROXIMAÇÃO DA VEROSSIMILHANÇA POR MONTE CARLO
 
-## Cálculo do MCLA
+## Cálculo do MCLA: Motivação
 
-Aqui...
+\begin{itemize}
+\item \textbf{A Verossimilhança Marginal em GLMMs:} 
+O cálculo exato exige resolver a integral de alta dimensão:
+$$L(\theta \mid y) = \int_{\mathbb{R}^q} f_\beta(y \mid u) \, f_\nu(u) \, du$$
 
-## Implementação do MCLA no glmm
+\vspace{0.2cm}
+\item \textbf{A Barreira Dimensional:} 
+\begin{itemize}
+\item Em modelos com efeitos aleatórios cruzados, a dimensão $q$ cresce rapidamente com o tamanho da amostra.
+\item \textit{Exemplo prático:} No célebre experimento das salamandras, $q = 120$.
+\end{itemize}
+\end{itemize}
 
-Aqui...
+\vspace{0.2cm}
+\begin{graybox}
+\textbf{Consequência:} Os métodos tradicionais de quadratura (como quadratura gaussiana) tornam-se computacionalmente inviáveis ou falham devido à alta dimensionalidade.
+\end{graybox}
 
+## Cálculo do MCLA: Fundamentação e Vantagens
 
-## Propriedades assintóticas do MCLA
+\begin{itemize}
+\item \textbf{Reescrita via Amostragem de Importância:} 
+Em vez de quadratura em grelha, reescrevemos o problema como uma esperança matemática sob uma densidade proposta $\tilde{f}(u)$:
+$$L(\theta \mid y) = \int \frac{f_\beta(y \mid u) f_\nu(u)}{\tilde{f}(u)} \tilde{f}(u) \, du = E_{\tilde{f}} \left[ \frac{f_\theta(u, y)}{\tilde{f}(u)} \right]$$
 
-Aqui...
+\vspace{0.1cm}
+\item \textbf{Vantagem Fundamental:} 
+Como a densidade proposta $\tilde{f}(u)$ \textbf{não depende} do parâmetro de interesse $\theta$, a derivação e a otimização sob o sinal de somatório tornam-se diretas.
+\end{itemize}
+
+\vspace{0.15cm}
+\begin{greenbox}
+\textbf{Resultado:} Transforma um problema de integração intratável em um problema de simulação estocástica eficiente.
+\end{greenbox}
+
+## O Estimador e o Gradiente
+\begin{itemize}
+\item Dado um conjunto de amostras pseudo-aleatórias $u_1, u_2, \dots, u_m \sim \tilde{f}(u)$, a aproximação Monte Carlo da Verossimilhança (MCLA) é: 
+$$L_m(\theta \mid y) = \frac{1}{m} \sum_{k=1}^{m} \frac{f_\theta(u_k, y)}{\tilde{f}(u_k)}$$
+\item O vetor Score (Gradiente) e a matriz Hessiana aproximados são calculados exatamente por: 
+$$\nabla_\theta \log L_m(\theta \mid y) = \frac{\frac{1}{m} \sum_{k=1}^m \frac{\nabla_\theta f_\theta(u_k, y)}{\tilde{f}(u_k)}}{L_m(\theta \mid y)}$$
+\end{itemize}
+
+## Por que Pacotes Anteriores Falhavam?
+\begin{itemize}
+\item O pacote \texttt{bernor} (Sung \& Geyer, 2007) implementava MCLA usando uma densidade de amostragem $\tilde{f}(u) = f_{\nu_0}(u)$, baseada apenas na distribuição a priori dos efeitos aleatórios.
+\item \textbf{O Colapso da Variância:}
+  \begin{itemize}
+  \item Se $\tilde{f}(u)$ não estiver centrada onde a verossimilhança posterior $f_\theta(u \mid y)$ é alta, os pesos de importância explodem em poucos pontos.
+  \item A amostra efetiva colapsa e o erro padrão de Monte Carlo torna-se infinito ou impraticável.
+  \end{itemize}
+\end{itemize} 
+\vspace{0.1cm}
+\begin{graybox} 
+\textbf{Requisito Prático:} Para funcionar na prática, $\tilde{f}(u)$ deve depender obrigatoriamente dos dados observados $y$ e imitar o comportamento da distribuição condicional $f_\theta(u \mid y)$. 
+\end{graybox}
+
+## Implementação no glmm: A Mistura Tripla
+\vspace{-0.5cm}
+\begin{itemize}
+\item Para resolver a falha de estabilidade, Knudson et al. (2020) propuseram uma densidade de importância composta por uma \textbf{mistura de 3 distribuições}: 
+$$\tilde{f}(u) = w_1 \, g_1(u) + w_2 \, g_2(u) + w_3 \, g_3(u)$$ 
+onde por padrão $w_1 = w_2 = w_3 = 1/3$.
+\end{itemize} 
+\vspace{0.15cm}
+\begin{enumerate}
+\item \textbf{Componente 1 ($g_1$ - Normal PQL):} Centrada na predição PQL $\hat{u}_{PQL}$, com matriz de covariância $\hat{\Omega}_{PQL}$.
+\item \textbf{Componente 2 ($g_2$ - Normal Curvatura Local):} Centrada em $\hat{u}_{PQL}$, com covariância dada pela inversa da Hessiana de $-\log f_\theta(u, y)$.
+\item \textbf{Componente 3 ($g_3$ - $t$ de Student de Caudas Pesadas):} Centrada na origem ($0$), escala PQL e $5$ graus de liberdade. 
+\end{enumerate}
+
+## Papel Estratégico de Cada Componente
+\begin{center}
+\small
+\begin{tabular}{lll}
+\toprule 
+\textbf{Componente} & \textbf{Construção} & \textbf{Função Principal} \\ 
+\midrule 
+$g_1$: Normal PQL & Média $\hat{u}_{PQL}$, Var $\hat{\Omega}_{PQL}$ & Localiza alta probabilidade posterior \\ 
+$g_2$: Normal Hessiana & Média $\hat{u}_{PQL}$, Var $(-\mathcal{H})^{-1}$ & Ajusta a curvatura local exata \\ 
+$g_3$: $t$-Student ($df=5$) & Média $0$, Escala $\hat{\Omega}_{PQL}$ & Proteção contra caudas leves \\ 
+\bottomrule 
+\end{tabular}
+\end{center}
+
+\vspace{0.15cm}
+\begin{greenbox} 
+\textbf{Garantia Teórica:} A inclusão da componente $g_3$ impede que a razão de amostragem de importância vá para o infinito nas caudas, garantindo variância finita.
+\end{greenbox}
+
+## Propriedades Assintóticas: Convergência
+\begin{itemize}
+\item \textbf{Teorema de Convergência Pontual (Geyer, 1994):} Para qualquer valor fixo de $\theta$, sob condições de integrabilidade tipo Wald: 
+$$L_m(\theta \mid y) \xrightarrow{m \to \infty} L(\theta \mid y) \quad \text{quase certamente (a.s.)}$$
+\item \textbf{Convergência Uniforme:} Se o espaço paramétrico $\Theta$ for compacto, a aproximação converge uniformemente: 
+$$\sup_{\theta \in \Theta} | L_m(\theta \mid y) - L(\theta \mid y) | \xrightarrow{a.s.} 0 \quad \text{quando } m \to \infty$$
+\end{itemize}
+
+## Consistência do MCMLE
+\begin{itemize}
+\item \textbf{Estimador MCMLE:} Seja $\hat{\theta}_m = \arg\max_{\theta \in \Theta} L_m(\theta \mid y)$ o estimador de máxima verossimilhança Monte Carlo.
+\item \textbf{Consistência Fortíssima:} À medida que $m$ cresce: 
+$$\hat{\theta}_m \xrightarrow{a.s.} \hat{\theta}_{MLE} \quad \text{quando } m \to \infty$$ 
+onde $\hat{\theta}_{MLE}$ é o verdadeiro estimador frequentista.
+\item \textbf{Preservação de Perfis:} Os perfis de verossimilhança MC convergem quase certamente para os perfis exatos, viabilizando testes de razão de verossimilhança.
+\end{itemize}
+
+## Erro Padrão Monte Carlo (MCSE)
+\begin{itemize}
+\item Pelo Teorema Central do Limite para Amostragem de Importância: 
+$$\sqrt{m} \left( \hat{\theta}_m - \hat{\theta}_{MLE} \right) \xrightarrow{d} N\left(0, \, V_{MC}\right)$$
+\item A matriz de covariância $V_{MC}$ é estimada no pacote \texttt{glmm} por: 
+$$\hat{V}_{MC} = \mathcal{I}_m(\hat{\theta}_m)^{-1} \left[ \frac{1}{m} \sum_{k=1}^m w_k^2 \, \nabla_\theta \log f_{\hat{\theta}_m}(u_k, y) \nabla_\theta \log f_{\hat{\theta}_m}(u_k, y)^T \right] \mathcal{I}_m(\hat{\theta}_m)^{-1}$$ 
+onde $w_k$ são os pesos normalizados.
+\end{itemize}
+
 
 # UTILIZANDO O PACOTE GLMM DO R
 
-## Formatação dos dados
+## Formatação dos Dados para o Pacote glmm
+\begin{itemize}
+  \item \textbf{Estruturação de Variáveis no R:} Para ajustar modelos no pacote \texttt{glmm}, os dados precisam estar organizados em um \texttt{data.frame} com classes específicas:
+    \begin{itemize}
+      \item \textbf{Efeitos Fixos ($X$):} Variáveis numéricas ou fatores (\texttt{factor}).
+      \item \textbf{Efeitos Aleatórios ($Z$):} Obrigatoriamente especificados como fatores (\texttt{factor}).
+    \end{itemize}
+  \item \textbf{Famílias Suportadas:}
+    \begin{itemize}
+      \item \texttt{bernoulli.glmm}: Resposta binária ($0$ ou $1$).
+      \item \texttt{poisson.glmm}: Contagens inteiras não-negativas.
+      \item \texttt{binomial.glmm}: Matriz de duas colunas contendo o número de sucessos e fracassos.
+    \end{itemize}
+\end{itemize}
 
-Aqui...
+## Sintaxe de Ajuste com a Função glmm()
+\vspace{-0.5cm}
+\begin{itemize}
+\item O modelo da salamandra é ajustado especificando os efeitos fixos e a lista de efeitos aleatórios:
+\end{itemize}
+\footnotesize
+```r
+library(glmm)
+data(salamander)
+
+# Configuração de cluster paralelo (recomendado)
+clust <- parallel::makeCluster(4)
+set.seed(1234)
+
+# Ajuste do Modelo com 1 milhão de simulações Monte Carlo
+sal <- glmm(Mate ~ 0 + Cross, 
+            random = list(~ 0 + Female, ~ 0 + Male), 
+            varcomps.names = c("F", "M"), 
+            data = salamander,
+            family.glmm = bernoulli.glmm, 
+            m = 10^6, 
+            cluster = clust)
+```
+
+## Análise da Saída: summary(sal)
+\begin{itemize}
+\item A função \texttt{summary()} resume os parâmetros fixos e as componentes de variância:
+\end{itemize}\begin{center}
+\small
+\begin{tabular}{lcccc}
+\toprule
+\textbf{Efeito Fixo} & \textbf{Estimativa} & \textbf{Erro Padrão (SE)} & \textbf{Valor $z$} & \textbf{p-valor} \\
+\midrule
+CrossR/R & 1.000 & 0.384 & 2.600 & 0.0093 \\
+CrossR/W & 0.320 & 0.390 & 0.823 & 0.4103 \\
+CrossW/R & -1.940 & 0.454 & -4.263 & $< 0.0001$ \\
+CrossW/W & 1.010 & 0.434 & 2.333 & 0.0197 \\
+\midrule
+\textbf{Comp. Variância} & \textbf{Estimativa} & \textbf{Erro Padrão (SE)} & \textbf{Valor $z$} & \textbf{p-valor (1-cauda)} \\
+\midrule
+F (Fêmea) & 1.340 & 0.518 & 2.597 & 0.0047 \\
+M (Macho) & 1.240 & 0.565 & 2.190 & 0.0143 \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+## Matriz de Covariância e Teste de Wald
+\begin{itemize}
+\item \textbf{Extração da Matriz de Covariância:} O comando \texttt{vcov(sal)} retorna a matriz $\hat{\Sigma}_{\theta}$ completa.
+\item \textbf{Teste de Hipótese para Efeitos de Cruzamento:}$$H_0: \beta_{R/R} = \beta_{R/W} = \beta_{W/R} = \beta_{W/W}$$\item Calculando a estatística de Wald no R:$$W = (L\hat{\beta})^T \left( L \text{Var}(\hat{\beta}) L^T \right)^{-1} (L\hat{\beta}) \sim \chi_3^2$$\end{itemize}\vspace{0.1cm}
+\begin{greenbox}
+\textbf{Resultado do Teste:} $W = 39.8$, p-valor $< 1.6 \times 10^{-8}$. Rejeita-se $H_0$, confirmando diferença altamente significativa na probabilidade de acasalamento entre os tipos de cruzamento.
+\end{greenbox}
+
+## Avaliação dos Erros Padrão Monte Carlo (MCSE)
+\begin{itemize}
+\item É essencial distinguir as duas fontes de variabilidade reportadas pelo pacote:
+\begin{enumerate}
+\item \textbf{SE (\texttt{se(sal)}):} Erro padrão amostral (assintótico dos dados).
+\item \textbf{MCSE (\texttt{mcse(sal)}):} Erro padrão devido à simulação estocástica de Monte Carlo.
+\end{enumerate}
+\end{itemize}
+\begin{center}
+\small
+\begin{tabular}{lcccccc}
+\toprule
+\textbf{Erro} & $\hat{\beta}_{R/R}$ & $\hat{\beta}_{R/W}$ & $\hat{\beta}_{W/R}$ & $\hat{\beta}_{W/W}$ & $\hat{v}_F$ & $\hat{v}_M$ \\
+\midrule
+SE Amostral & 0.3844 & 0.3945 & 0.4543 & 0.4344 & 0.5177 & 0.5650 \\
+MCSE ($m=10^6$) & 0.0074 & 0.0136 & 0.0173 & 0.0219 & 0.0384 & 0.0389 \\
+\bottomrule
+\end{tabular}
+\end{center}\vspace{0.1cm}
+\begin{graybox}
+\textbf{Diagnóstico de Precisão:} Como $\text{MCSE} \ll \text{SE}$ para todos os parâmetros, o esforço computacional $m = 10^6$ é adequado e o erro de simulação é insignificante.
+\end{graybox}
+
+## Métodos Auxiliares do glmm
+\begin{itemize}
+\item \textbf{\texttt{coef(sal)}:} Retorna apenas o vetor estimado de efeitos fixos $\hat{\beta}$.
+\item \textbf{\texttt{varcomps(sal)}:} Retorna o vetor estimado das componentes de variância $\hat{\nu}$.
+\item \textbf{\texttt{confint(sal)}:} Calcula os intervalos de confiança assintóticos (ex.: 95%):
+\end{itemize}
+\small
+```r
+# Intervalos de confiança de 95% para todos os parâmetros
+confint(sal, level = 0.95)
+```
+\begin{itemize}
+\item \textbf{Intervalos de Razão de Verossimilhança:} Perfis obtidos iterativamente sobre a grade do parâmetro de interesse.
+\end{itemize}
 
 
-## Utilizando a função de ajuste do modelo
 
-Aqui...
+# DESEMPENHO E COMPARAÇÃO
 
-## Lendo o resumo da saída
+## Comparação de Métodos de Inferência em GLMMs
+\vspace{-0.5cm}
+\begin{itemize}
+  \item \textbf{Diferenças Fundamentais de Abordagem:}
+\end{itemize}
 
-Aqui...
+\begin{center}
+\small
+\begin{tabular}{llll}
+\toprule
+\textbf{Método} & \textbf{Paradigma} & \textbf{Inocuidade Computacional} & \textbf{Propriedade Teórica} \\
+\midrule
+PQL (\texttt{glmmPQL}) & Aproximado & Muito alta / Rápido & Sem verossimilhança exata; \\
+& & & viés acentuado em caudas \\
+\addlinespace[0.1cm]
+AGHQ (\texttt{glmer}) & Quadratura & Limitado a poucas dimensões & Inviável para efeitos \\
+& & & cruzados ($q=120$) \\
+\addlinespace[0.1cm]
+MCMC Bayesiano & Bayesiano & Exige especificação de Priors & Amostragem pesada; \\
+& & & convergência lenta \\
+\addlinespace[0.1cm]
+\textbf{MCLA (\texttt{glmm})} & \textbf{Frequentista} & \textbf{Escala bem em $q$ elevado} & \textbf{MCMLE $\xrightarrow{a.s.}$ MLE exato} \\
+\bottomrule
+\end{tabular}
+\end{center}
 
+\vspace{0.15cm}
+\begin{greenbox}
+\textbf{Vantagem Competitiva:} O pacote \texttt{glmm} preenche a lacuna de permitir inferência frequentista \textbf{exata} via máxima verossimilhança em modelos complexos onde a quadratura gaussiana falha devido à alta dimensionalidade.
+\end{greenbox}
 
-## Estimando a matriz de variância-covariância
+## Avaliação do Esforço Computacional ($m$)
+\begin{itemize}
+  \item \textbf{Comportamento do MCSE com o tamanho da amostra Monte Carlo ($m$):}
+    \begin{itemize}
+      \item O erro padrão de Monte Carlo diminui na taxa $O(m^{-1/2})$.
+      \item Aumentar $m$ de $10^4$ para $10^6$ reduz o MCSE em um fator de $10$.
+    \end{itemize}
+  \item \textbf{Recomendação Prática de Trabalho:}
+    \begin{enumerate}
+      \item \textbf{Fase Exploratória:} Utilizar $m = 10^4$ para ajustes rápidos e checagem de código.
+      \item \textbf{Fase Final de Publicação:} Utilizar $m = 10^5$ a $m = 10^6$ para garantir $\text{MCSE} < 1\% \times \text{SE}$.
+    \end{enumerate}
+\end{itemize}
 
-Aqui...
+# NOTAS DE PROGRAMAÇÃO E IMPLEMENTAÇÃO
 
+## Arquitetura Interna do Pacote glmm
+\begin{itemize}
+  \item \textbf{Integração R / C++:}
+    \begin{itemize}
+      \item As rotinas intensivas de amostragem e avaliação da densidade da mistura tripla são implementadas em \textbf{C++} via \texttt{Rcpp} e \texttt{RcppArmadillo}.
+      \item Isso garante ganho de desempenho computacional em ordens de grandeza durante as somatórias de Monte Carlo.
+    \end{itemize}
+  \item \textbf{Paralelização Nativa:}
+    \begin{itemize}
+      \item O suporte ao pacote \texttt{parallel} permite dividir a geração dos $m$ pontos entre múltiplos núcleos da CPU.
+      \item Escalabilidade quase linear com o número de cores disponíveis.
+    \end{itemize}
+\end{itemize}
 
-## Cálculo de erros padrão e erros padrão de Monte Carlo
+# DISCUSSÃO E CONCLUSÃO
 
-Aqui...
+## Principais Contribuições do Artigo
+\begin{itemize}
+  \item \textbf{Solução para um Problema Histórico:} Supera a instabilidade numérica de abordagens anteriores de MCLA (como o pacote \texttt{bernor}) através da densidade de mistura tripla.
+  \item \textbf{Rigor Teórico e Prático:} Oferece estimadores de máxima verossimilhança frequentistas consistentes e assintoticamente normais para GLMMs com efeitos aleatórios cruzados.
+  \item \textbf{Disponibilidade no R:} Pacote \texttt{glmm} amigável e integrado ao ecossistema do R, permitindo cálculo direto de erros padrão de Monte Carlo (MCSE) e matrizes de covariância.
+\end{itemize}
 
-## Funções adicionais
+\vspace{0.15cm}
+\begin{graybox}
+\textbf{Conclusão:} O pacote \texttt{glmm} consolida a aproximação por Monte Carlo como uma ferramenta robusta, viável e teoricamente fundamentada para inferência em modelos lineares mistos generalizados de alta dimensão.
+\end{graybox}
 
-Aqui...
+## Referências Bibliográficas
 
-# DESEMPENHO
+\small
+\begin{itemize}
+  \item Knudson, A., Geyer, C. J., \& Sung, Y. J. (2020). Likelihood-based inference for generalized linear mixed models: Inference with the R package glmm. \textit{Stat}, 10(1), e339.
+  \item Geyer, C. J. (1994). On the convergence of Monte Carlo maximum likelihood estimates. \textit{Bernoulli}, 1-28.
+  \item Sung, Y. J., \& Geyer, C. J. (2007). Monte Carlo likelihood inference for missing data models. \textit{Annals of Statistics}, 35(3), 990-1011.
+  \item Breslow, N. E., \& Clayton, D. G. (1993). Approximate inference in generalized linear mixed models. \textit{Journal of the American Statistical Association}, 88(421), 9-25.
+\end{itemize}
 
-# NOTAS SOBRE A PROGRAMAÇÃO DOS MÉTODOS DE MONTE CARLO
+## 
 
-# DISCUSSÃO
+\vfill
+\begin{center}
+  {\Huge \textcolor{darkgreen}{\textbf{Obrigada!}}}
 
+  \vspace{0.5cm}
 
-
+  {\large Perguntas e Discussão}
+\end{center}
+\vfill
