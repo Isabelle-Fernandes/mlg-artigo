@@ -9,7 +9,7 @@ format:
     pdf-engine: xelatex
     aspectratio: 169
     slide-number: true
-    keep-tex: true
+    keep-tex: false
 
 header-includes:
   - |
@@ -30,14 +30,14 @@ header-includes:
     \definecolor{bordergreen}{HTML}{8EBA96} % Borda verde suave
     \definecolor{bordergray}{HTML}{BAC7C7}  % Borda cinza suave
     \definecolor{textgray}{HTML}{1A2421}    % Texto escuro de altíssimo contraste
-
+    
     % ------------------------------------------------
     % FONT
     % ------------------------------------------------
     \IfFontExistsTF{Segoe UI}{
       \setsansfont{Segoe UI}
     }{
-      \setsansfont{Arial}
+      \setsansfont{Liberation Sans}
     }
 
     % ------------------------------------------------
@@ -135,7 +135,7 @@ header-includes:
     \setbeamerfont{author}{size=\normalsize}
 
 execute:
-  echo: false
+  echo: true
 ---
 
 ##
@@ -168,41 +168,243 @@ execute:
   \end{center}
 
 
-## Sumário
+```{r}
+#| include: false
+library(glmm)
+```
+
+## SUMÁRIO
 
 \tableofcontents
 
+
 # INTRODUÇÃO
 
+## Introdução
 
-## Introdução 
+- **Modelos Lineares (LM):** Pressupõem respostas contínuas gaussianas e observações independentes.
+- **Modelos Lineares Generalizados (MLG / GLM):** 
+  - Estendem o LM para a **família exponencial** de distribuições (Binomial, Poisson, Gamma, etc.).
+  - Relacionam a média ao preditor linear por uma **função de ligação** $g(\mu) = X\beta$.
+- **A Limitação Crítica dos MLGs:**
+  - Exigem a suposição de **independência marginal** entre todas as observações.
+  - Em aplicações reais, dados agrupados, medidas repetidas ou amostragens multinível violam essa suposição.
+  
 
-Aqui é a introdução.
+## Dados Correlacionados e o Risco de Pseudorreplicação
 
+- **Exemplo Longitudinal:** Visita anual de um paciente ao médico ao longo de 10 anos ($y_{i1}, \dots, y_{i10}$).
+  - As respostas do mesmo indivíduo são historicamente correlacionadas.
+- **Pseudorreplicação:**
+  - Tratar $N = n \times k$ medições repetidas como observações independentes infla falsamente o tamanho amostral efetivo.
+  - Subestima os erros-padrão dos coeficientes, gerando $p$-valores artificialmente baixos e **falsos positivos (Erro Tipo I)**.
+
+## Ilustração: O Perigo dos Testes de Hipótese Incorretos
+
+![](slope_hypothesis_testing.png){width=100% central=true}
+
+Repetir medições no mesmo sujeito não adiciona tanta informação independente quanto adicionar novos sujeitos.
+
+## A Evolução da Modelagem Estatística
+
+| Modelo | Resposta ($Y$) | Estrutura dos Dados | Preditor Linear |
+| :--- | :--- | :--- | :--- |
+| **LM** | Gaussiana (Contínua) | Independentes | $\mu = X\beta$ |
+| **GLM** | Família Exponencial | Independentes | $g(\mu) = X\beta$ |
+| **LMM** | Gaussiana (Contínua) | Correlacionados (Agrupados) | $E[Y|U] = X\beta + ZU$ |
+| **GLMM** | Família Exponencial | Correlacionados (Agrupados) | $g(E[Y|U]) = X\beta + ZU$ |
+
+- **GLMM (Generalized Linear Mixed Model):** Unifica a flexibilidade de distribuições não-gaussianas dos MLGs com a capacidade dos LMMs de modelar correlações via **efeitos aleatórios**.
+
+
+
+## O Desafio Computacional dos GLMMs e o Artigo
+
+- **O Obstáculo Histórico:**
+  - Em LMMs, os efeitos aleatórios podem ser integrados analiticamente.
+  - Em GLMMs, a verossimilhança marginal envolve uma **integral sem solução em forma fechada**.
+
+- **Limitação dos Softwares Existentes:**
+  - Métodos como Quadratura Gaussiana ou Aproximações de Laplace falham ou têm alto viés quando os efeitos aleatórios são **cruzados** (*crossed*).
+- **Contribuição de Knudson et al. (2020):** Apresenta o pacote \texttt{glmm} no R, com inferência frequentista baseada em verossimilhança para GLMMs com distribuições binomial ou de Poisson, incluindo o cálculo da informação de Fisher, testes de hipóteses e a construção de intervalos de confiança baseados em verossimilhança. Trata-se do único software disponível publicamente que realiza, de forma precisa, a inferência baseada em verossimilhança para GLMMs que envolvem tanto efeitos aleatórios aninhados quanto cruzados.
+  
 # MODELOS LINEARES MISTOS GENERALIZADOS
 
+## Modelos Lineares Mistos Generalizados (GLMM)
 
-## Descrição do modelo
+Seja $Y = (Y_1, \dots, Y_n)'$ o vetor de respostas e $U = (U_1, \dots, U_q)'$ o vetor de efeitos aleatórios.
 
-Aqui é a explicação do modelo misto.
+1. **Distribuição Condicional:** Dado $U = u$, as respostas $Y_1, \dots, Y_n$ são **condicionalmente independentes** com densidade na família exponencial:
+   $$f(y_i|u) = \exp \left\{ \frac{y_i \xi_i - b(\xi_i)}{a_i(\phi)} + c(y_i, \phi) \right\}$$
+   
+2. **Preditor Linear Misto:**
+   $$\eta_i = x_i' \beta + z_i' u \quad \Rightarrow \quad \eta = X\beta + ZU$$
+   - $X_{n \times p}$: matriz de delineamento dos **efeitos fixos** ($\beta$).
+   - $Z_{n \times q}$: matriz de delineamento dos **efeitos aleatórios** ($U$).
+3. **Função de Ligação Canônica:** $\mu_i = E(Y_i|U=u) = b'(\xi_i)$ e $g(\mu_i) = \eta_i$. Sob ligação canônica, $\xi_i = \eta_i$.
 
-## O exemplo da salamandra
+## Distribuição dos Efeitos Aleatórios
 
-Aqui é a explicação exemplo.
+- Assume-se que o vetor de efeitos aleatórios segue uma distribuição Normal multivariada com média zero:
+  $$U \sim \mathcal{N}_q(0, D(\nu))$$
+- No pacote `glmm`, os efeitos aleatórios são assumidos mutuamente independentes, resultando em uma matriz de covariância **diagonal**:
+  $$D(\nu) = \text{diag}(\nu_1, \nu_2, \dots, \nu_q)$$
+  onde os componentes do vetor $\nu$ são as variâncias das subpopulações de efeitos aleatórios.
+
+## Casos Especiais Frequentes
+
+- **Modelo Logístico Misto:**
+  - Ligação canônica: Logit.
+  $$\text{logit}(p_i) = \log\left(\frac{p_i}{1 - p_i}\right) = x_i' \beta + z_i' u, \quad Y_i|u \sim \text{Bernoulli}(p_i)$$
+- **Modelo Poisson Misto:**
+  - Ligação canônica: Log.
+  $$\log(\lambda_i) = x_i' \beta + z_i' u, \quad Y_i|u \sim \text{Poisson}(\lambda_i)$$
+  
+
+## Função de Verossimilhança no GLMM
+
+A verossimilhança marginal dos parâmetros $\theta = (\beta', \nu')'$ é obtida integrando os efeitos aleatórios $u$ fora da densidade conjunta:
+
+$$L(\theta | y) = \int_{\mathbb{R}^q} f_\beta(y|u) f_\nu(u) \, du$$
+
+- $f_\beta(y|u) = \prod_{i=1}^n f_\beta(y_i|u)$: densidade condicional dos dados.
+- $f_\nu(u)$: densidade conjunta a priori dos efeitos aleatórios $\mathcal{N}_q(0, D(\nu))$.
+
+## Função de Verossimilhança de Efeitos Cruzados
+
+A verossimilhança para efeitos cruzados tem a forma (Jiang, 2007, p. 126):
+
+$$\begin{aligned}
+L(\theta|y) =& \ c \cdot \left(\sigma_1^2\right)^{-\frac{m_1}{2}} \cdot \left(\sigma_2^2\right)^{-\frac{m_2}{2}} \cdot \exp\left(\mu y{\cdot\cdot} \right) \cdot \\
+&\int \dots \int \left[ \prod_{i=1}^{m_1} \prod_{j=1}^{m_2} \{1 + \exp(\mu + u_i + v_j)\}^{-1} \right] . \\
+&\exp\left( \sum u_i y_{i\cdot} + \sum v_j y_{\cdot j} - \frac{1}{2\sigma_1^2} \sum u_i^2 - \frac{1}{2\sigma_2^2} \sum v_j^2 \right) du \, dv
+\end{aligned}$$
 
 
-## O conjunto de dados da salamandra
+## Efeitos Mistos: Aninhados vs. Cruzados
 
-Aqui é a explicação do dataset.
+**Efeitos Aninhados (*Nested*):**
 
-## O modelo da salamandra
+- Ocorrem quando níveis de um fator existem apenas dentro de um nível específico de outro fator.
+- *Exemplo:* Alunos aninhados dentro de turmas, que estão aninhadas dentro de escolas.
 
-Aqui é a explicação do modelo.
+**Efeitos Cruzados (*Crossed*):**
+
+- Ocorrem quando níveis de um fator combinam-se com múltiplos níveis de outro fator.
+- *Exemplo:* Fatores Fêmea e Macho em um experimento de acasalamento; ou Sujeito e Item em testes psicológicos.
+
+## Definição Formal de Efeitos Cruzados via Teoria dos Grafos
+
+Conforme Knudson et al. (2020, Seção 2.1):
+
+1. Considere um grafo onde cada nó representa um componente do vetor de efeitos aleatórios $U$.
+2. Conecte dois nós por uma aresta se alguma observação $Y_i$ no vetor de respostas depender simultaneamente desses dois efeitos aleatórios.
+3. **Critério:** Se cada **subgrafo conexo maximal** contiver múltiplos nós provenientes de **diferentes componentes de variância**, os efeitos aleatórios são **cruzados**.
+
+$$\text{Efeitos Cruzados} \Longrightarrow \text{Impossibilidade de fatorar a verossimilhança em integrais 1D!}$$
+
+# O EXEMPLO DA SALAMANDRA
+
+## O Exemplo da Salamandra (McCullagh & Nelder, 1989)
+
+**Contexto Biológico:**   
+
+- Estudo de especiação em duas populações geograficamente isoladas de salamandras nas Montanhas Apalaches: *Rough Butt* (R) e *White Side* (W).
+- **Objetivo Científico:** Verificar se há barreira reprodutiva entre as populações ou se cruzamentos interpopulacionais têm a mesma probabilidade de sucesso.
+
+**Cruzamentos Possíveis (Fêmea / Macho):**
+
+- $R/R$: Fêmea Rough Butt $\times$ Macho Rough Butt
+- $R/W$: Fêmea Rough Butt $\times$ Macho White Side
+- $W/R$: Fêmea White Side $\times$ Macho Rough Butt
+- $W/W$: Fêmea White Side $\times$ Macho White Side
+  
+
+## O Exemplo da Salamandra: Desenho Experimental
+
+**Estrutura do Experimento:**
+
+- Conduzido 3 vezes (Verão, Outono 1, Outono 2).
+- Cada experimento utilizou **40 salamandras** (20 fêmeas e 20 machos), divididas em 2 grupos fechados de 20.
+- Cada grupo continha: 5 Fêmeas R, 5 Fêmeas W, 5 Machos R e 5 Machos W.
+
+**Ensaios de Acasalamento:**
+
+- Cada fêmea foi pareada com 6 machos distintos do seu grupo (3 machos R e 3 machos W).
+- 60 ensaios por grupo $\times$ 2 grupos por experimento $\times$ 3 experimentos = **360 observações binárias**.
+- **Consequência:** Como fêmeas e machos se cruzam repetidamente, os efeitos aleatórios das Fêmeas e dos Machos são **cruzados**.
+
+## O Exemplo da Salamandra: Grafo do Experimento
+
+![](grafo.jpeg){width=90% central=true}
 
 
-## A função de verossimilhança
+## O Conjunto de Dados da Salamandra no R
 
-Aqui...
+```{r}
+data(salamander)
+head(salamander, n = 6)
+sapply(salamander, class)
+```
+
+## O Modelo da Salamandra (Model A - Karim & Zeger, 1992)
+
+Para a observação $i$ (par fêmea-macho), a probabilidade de acasalamento $\pi_i$ é modelada por:
+
+$$\begin{aligned}
+\text{logit}(\pi_i) &= \beta_{R/R} I(\text{Cross}_i = R/R) + \beta_{R/W} I(\text{Cross}_i = R/W) \ +\\
+                    &+ \beta_{W/R} I(\text{Cross}_i = W/R) + \beta_{W/W} I(\text{Cross}_i = W/W) \ +\\
+                    &+ u_i^F + u_i^M
+\end{aligned}$$
+
+**Efeitos Fixos ($\beta$):** Log-odds de acasalamento para cada um dos 4 tipos de cruzamento.
+
+**Efeitos Aleatórios ($U$):**
+
+  - $u_i^F \sim \mathcal{N}(0, v_F)$: efeito individual da fêmea.
+  - $u_i^M \sim \mathcal{N}(0, v_M)$: efeito individual do macho.
+  - $u^F \perp u^M$, com variâncias $v_F$ e $v_M$ a serem estimadas.
+
+## Intratabilidade Numérica e Efeitos Cruzados
+
+$$L(\theta | y) = \int_{\mathbb{R}^q} f_\beta(y|u) f_\nu(u) \, du$$
+
+**Desafio de Integração**
+
+- Se os efeitos forem **aninhados**, a integral múltipla se decompõe no produto de integrais 1-dimensionais simples (ex: Quadratura Gaussiana).
+- Se os efeitos forem **cruzados** (Salamandra), a integral **NÃO** se decompõe em integrais unidimensionais.
+  
+## Intratabilidade Numérica e Efeitos Cruzados
+
+- No exemplo da salamandra, o grafo de dependências contém **6 subgrafos conexos maximais**.
+- Cada subgrafo possui 20 nós de efeitos aleatórios (10 fêmeas + 10 machos).
+- A verossimilhança se reduz a um produto de **6 integrais de dimensão 20**:
+  $$L(\theta | y) = \prod_{g=1}^6 \int_{\mathbb{R}^{20}} \left[ \prod_{i \in \text{Grupo } g} f_\beta(y_i | u^F, u^M) \right] f_{v_F}(u^F) f_{v_M}(u^M) \, du^F du^M$$
+- Integrais numéricas tradicionais (ex: Quadratura de Gauss-Hermite) falham em $\mathbb{R}^{20}$.
+
+## Intratabilidade Numérica e Efeitos Cruzados
+
+(Jiang, 2007, p. 126), a verossimilhança para efeitos cruzados tem a forma:
+
+$$\begin{aligned}
+L(\theta|y) \propto &\int \dots \int \left[ \prod_{i=1}^{m_1} \prod_{j=1}^{m_2} \{1 + \exp(\mu + u_i + v_j)\}^{-1} \right] . \\ 
+&\exp\left( \sum u_i y_{i\cdot} + \sum v_j y_{\cdot j} - \frac{1}{2\sigma_1^2} \sum u_i^2 - \frac{1}{2\sigma_2^2} \sum v_j^2 \right) du \, dv
+\end{aligned}$$
+
+- Para $m_1 = m_2 = 40$ (80 dimensões), o integrando envolve um produto de **1600 termos**, cada um estritamente menor que 1.
+- A amostragem aleatória simples da priori gera valores numéricos praticamente nulos para o integrando em quase todo o espaço.
+- **Resultado:** A Lei dos Grandes Números falha na prática e a aproximação de Monte Carlo simples resulta em zero ou estouro numérico.
+
+## Softwares Existentes vs. Pacote `glmm`
+
+| Software / Pacote | Método de Integração / Aproximação | Limitação em Efeitos Cruzados |
+| :--- | :--- | :--- |
+| **SAS `NLMIXED`** | Quadratura Gaussiana Adaptativa | Restrito a poucas dimensões e efeitos não-cruzados |
+| **R `lme4::glmer`** | Aproximação de Laplace / Gauss-Hermite | Não realiza verossimilhança exata para cruzados |
+| **SAS `GLIMMIX`** | PQL / Laplace por padrão | PQL produz viés severo em dados binários |
+| **R `MASS::glmmPQL`** | Quase-Verossimilhança Penalizada (PQL) | Subestima os componentes de variância |
+| **R `bernor`** | MCLA com amostragem fixa (independente de $y$) | Falha ao encontrar a MLE na Salamandra |
+| **R `glmm`** | **MCLA com Amostragem por Importância Adaptativa** | **Consegue verossimilhança exata com SEs finitos!** |
 
 # APROXIMAÇÃO DA VEROSSIMILHANÇA POR MONTE CARLO
 
@@ -348,6 +550,7 @@ onde $w_k$ são os pesos normalizados.
 \item O modelo da salamandra é ajustado especificando os efeitos fixos e a lista de efeitos aleatórios:
 \end{itemize}
 \footnotesize
+
 ```r
 library(glmm)
 data(salamander)
@@ -426,6 +629,7 @@ MCSE ($m=10^6$) & 0.0074 & 0.0136 & 0.0173 & 0.0219 & 0.0384 & 0.0389 \\
 \item \textbf{\texttt{confint(sal)}:} Calcula os intervalos de confiança assintóticos (ex.: 95%):
 \end{itemize}
 \small
+
 ```r
 # Intervalos de confiança de 95% para todos os parâmetros
 confint(sal, level = 0.95)
@@ -517,10 +721,12 @@ MCMC Bayesiano & Bayesiano & Exige especificação de Priors & Amostragem pesada
 
 \small
 \begin{itemize}
-  \item Knudson, A., Geyer, C. J., \& Sung, Y. J. (2020). Likelihood-based inference for generalized linear mixed models: Inference with the R package glmm. \textit{Stat}, 10(1), e339.
-  \item Geyer, C. J. (1994). On the convergence of Monte Carlo maximum likelihood estimates. \textit{Bernoulli}, 1-28.
-  \item Sung, Y. J., \& Geyer, C. J. (2007). Monte Carlo likelihood inference for missing data models. \textit{Annals of Statistics}, 35(3), 990-1011.
   \item Breslow, N. E., \& Clayton, D. G. (1993). Approximate inference in generalized linear mixed models. \textit{Journal of the American Statistical Association}, 88(421), 9-25.
+  \item Geyer, C. J. (1994). On the convergence of Monte Carlo maximum likelihood estimates. \textit{Bernoulli}, 1-28.
+  \item JIANG, J. Generalized Linear Mixed Models. New York: Springer, 2007. p. 126.
+  \item Knudson, A., Geyer, C. J., \& Sung, Y. J. (2020). Likelihood-based inference for generalized linear mixed models: Inference with the R package glmm. \textit{Stat}, 10(1), e339.
+  \item McCULLAGH, P.; NELDER, J. A. Generalized Linear Models. 2. ed. London: Chapman \& Hall, 1989.
+  \item Sung, Y. J., \& Geyer, C. J. (2007). Monte Carlo likelihood inference for missing data models. \textit{Annals of Statistics}, 35(3), 990-1011.
 \end{itemize}
 
 ## 
